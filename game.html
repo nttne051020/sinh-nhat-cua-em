@@ -1,0 +1,630 @@
+<!DOCTYPE html><html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đường Về Tim Em</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: none;
+      font-family: 'Arial', sans-serif;
+    }#game {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: 60% 58%;
+  background-repeat: no-repeat;
+}
+
+.player {
+  position: absolute;
+  width: 130px;
+  height: 140px;
+  left: 50px;
+  top: 250px;
+  transition: top 0.2s;
+  transform: translateY(-50%);
+}
+
+.obstacle {
+  position: absolute;
+  top: 250px;
+  left: 100vw;
+  transition: left 0.05s linear;
+  transform: translateY(-50%);
+}
+
+
+#message {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 340px;
+  padding: 28px 22px;
+  background: linear-gradient(135deg, #fff0fb, #f8e6ff);
+  border: 3px dashed #e2b6ff;
+  border-radius: 30px;
+  text-align: center;
+  font-size: 18px;
+  color: #7a3499;
+  z-index: 999;
+  box-shadow: 0 8px 22px rgba(190, 120, 255, 0.2);
+}
+
+#message button {
+  margin-top: 15px;
+  padding: 12px 25px;
+  font-size: 16px;
+  background: #d39aff;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+#message::before {
+  content: "💌";
+  font-size: 32px;
+  display: block;
+  margin-bottom: 12px;
+}
+#message button {
+  margin-top: 14px;
+  padding: 10px 22px;
+  font-size: 16px;
+  background: linear-gradient(to right, #d39aff, #ffbdfb);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+#introChat {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 340px;
+  max-width: 90%;
+  background: linear-gradient(135deg, #fff0fb, #f8e6ff);
+  border: 3px dashed #e2b6ff;
+  border-radius: 30px;
+  padding: 28px 22px;
+  font-size: 18px;
+  color: #7a3499;
+  font-weight: 500;
+  text-align: center;
+  z-index: 9999;
+  box-shadow: 0 8px 22px rgba(190, 120, 255, 0.2);
+  transition: all 0.3s ease-in-out;
+}
+
+#introChat::before {
+  content: "💌";
+  font-size: 32px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+#introChat button {
+  margin-top: 14px;
+  padding: 10px 22px;
+  font-size: 16px;
+  background: linear-gradient(to right, #d39aff, #ffbdfb);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+#introChat button:hover {
+  background: #c273f9;
+}
+#progressBarContainer {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 24px;
+  background-color: #f0d9ff;
+  border: 2px solid #c069ff;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+#progressBar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, #ff8efb, #d39aff);
+  transition: width 0.2s ease;
+}
+
+#progressText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 16px;
+  color: #803c9b;
+  z-index: 11;
+  pointer-events: none;
+}
+#dotCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+  #laneBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1; /* phía sau mọi thứ */
+}
+  </style>
+</head>
+<body>
+  <!-- Canvas hiệu ứng dot (ẩn sẵn) -->
+<canvas id="rainCanvas" style="display:none; z-index: 1000; position:absolute; top:0; left:0;"></canvas>
+<canvas id="dotCanvas" style="display:none; z-index: 1001; position:absolute; top:0; left:0;"></canvas>
+  <canvas id="laneBackground"></canvas>
+  <div id="game">
+    <div id="progressBarContainer">
+      <div id="progressBar"></div>
+      <div id="progressText">🚀❤️</div>
+    </div><div id="introChat">
+<p>❤️ Hello cục cưng!🔄Xoay ngang màn hình để chơi, di chuyển lên xuống để tránh chướng ngại vật và thu thập trái tim nhé ❤️</p>
+  <button onclick="startGame()">Bắt đầu</button>
+</div>
+
+<img id="player" class="player" src="nhanvat.png" style="top: 30%" />
+
+<div id="message">
+  <p>Ăn đủ bữa, uống đủ nước, ngủ đủ giấc.<br>
+     Khóc ít thôi, cười nhiều lên.<br>
+     Lái xe chầm chậm, về nhà an toàn nhé.<br>
+     Phải thật hạnh phúc nha.<br>
+     <strong>ILOVEU.</strong></p>
+  <button onclick="resetGame()">Chơi lại</button>
+</div>
+
+  </div>  <audio id="bgm" loop>
+  <source src="nhacnen.mp3" type="audio/mpeg">
+</audio>
+<audio id="winSound" loop>
+  <source src="thangroi.mp3" type="audio/mpeg">
+</audio>
+ <script>
+const player = document.getElementById("player");
+const game = document.getElementById("game");
+const message = document.getElementById("message");
+const progressBar = document.getElementById("progressBar");
+
+let currentLane = 1;
+let lanes = [];
+
+function updateLanes() {
+  const h = window.innerHeight;
+  lanes = [h * 0.17, h * 0.5, h * 0.83]; // center Y of each lane (3 đều nhau)
+}
+
+updateLanes();
+
+window.addEventListener("resize", () => {
+  updateLanes();
+  if (player) player.style.top = lanes[currentLane] + "px";
+});
+
+player.style.top = lanes[currentLane] + "px";
+player.style.transform = "translateY(-50%)";
+
+let gameEnded = false;
+let score = 0;
+let speed = 30;
+let speedInterval;
+
+const scoreDisplay = document.createElement("div");
+scoreDisplay.style.position = "absolute";
+scoreDisplay.style.top = "10px";
+scoreDisplay.style.left = "10px";
+scoreDisplay.style.color = "#803c9b";
+scoreDisplay.style.fontSize = "20px";
+
+function movePlayer(dir) {
+  if (dir === "up" && currentLane > 0) currentLane--;
+  if (dir === "down" && currentLane < 2) currentLane++;
+  player.style.top = lanes[currentLane] + "px";
+}
+
+let startY = 0;
+game.addEventListener("touchstart", e => startY = e.touches[0].clientY);
+game.addEventListener("touchend", e => {
+  let delta = e.changedTouches[0].clientY - startY;
+  if (delta < -30) movePlayer("up");
+  else if (delta > 30) movePlayer("down");
+});
+
+const obstacleImgs = ["hoa.png", "gau.png", "hopqua.png", "trai_tim.png"];
+
+function spawnObstacle() {
+  if (gameEnded) return;
+
+  let obs = document.createElement("img");
+  const type = obstacleImgs[Math.floor(Math.random() * obstacleImgs.length)];
+  obs.src = type;
+  obs.className = "obstacle";
+
+  if (type.includes("trai_tim")) {
+    obs.style.height = "120px";
+  } else {
+    obs.style.height = "80px";
+  }
+  obs.style.width = "auto";
+  obs.style.position = "absolute";
+
+  const laneIndex = Math.floor(Math.random() * 3);
+  const topPos = lanes[laneIndex];
+  obs.style.top = topPos + "px";
+  obs.style.transform = "translateY(-50%)";
+  obs.style.left = game.clientWidth + "px";
+  game.appendChild(obs);
+
+  let pos = game.clientWidth;
+  const interval = setInterval(() => {
+    if (gameEnded) {
+      clearInterval(interval);
+      obs.remove();
+      return;
+    }
+
+    pos -= 12;
+    obs.style.left = pos + "px";
+
+    const obsRect = obs.getBoundingClientRect();
+    const playerRect = player.getBoundingClientRect();
+
+    const isHeart = obs.src.includes("trai_tim");
+
+    const hitVertical = Math.abs(obsRect.top + obsRect.height / 2 - (playerRect.top + playerRect.height / 2));
+
+    if (
+      isHeart &&
+      obsRect.right > playerRect.left + 10 &&
+      obsRect.left < playerRect.right - 10 &&
+      hitVertical < 80
+    ) {
+      clearInterval(interval);
+      score += 777.7;
+      scoreDisplay.innerText = "Điểm: " + score.toFixed(1) + " / 7777";
+	  document.getElementById("progressText").innerText =
+    score.toFixed(1) + " ❤️ 7777";
+
+      const progress = Math.min((score / 7777) * 100, 100);
+      progressBar.style.width = progress + "%";
+      obs.remove();
+      if (score >= 7777) gameOver(true);
+    }
+
+    if (
+      !isHeart &&
+      obsRect.right > playerRect.left + 30 &&
+      obsRect.left < playerRect.right - 30 &&
+      hitVertical < 50
+    ) {
+      clearInterval(interval);
+      obs.remove();
+      gameOver(false);
+    }
+
+    if (pos < -100) {
+      clearInterval(interval);
+      obs.remove();
+    }
+  }, speed);
+}
+
+function gameOver(won) {
+  gameEnded = true;
+  clearInterval(spawnInterval);
+  clearInterval(speedInterval);
+  if (won) {
+  const bgm = document.getElementById("bgm");
+    if (bgm) bgm.pause();
+
+    // Phát nhạc thắng
+    const winSound = document.getElementById("winSound");
+    if (winSound) {
+      winSound.currentTime = 0;
+      winSound.play();
+    }
+    game.style.display = "none";
+    document.getElementById("rainCanvas").style.display = "block";
+    document.getElementById("dotCanvas").style.display = "block";
+    if (!window.dotStarted) {
+      startDotEffect();
+      window.dotStarted = true;
+    }
+  } else {
+    message.style.display = "block";
+    message.querySelector("p").innerHTML = `
+      😘 "Cục cưng va chạm mất rồi, thử lại lần nữa nhé, cố lên cục cưng ơi" 💪 
+    `;
+  }
+
+  function startDotEffect() {
+    const rainCanvas = document.getElementById('rainCanvas');
+    const rainCtx = rainCanvas.getContext('2d');
+    const rainFontSize = 16;
+    const rainLetters = 'I LOVE U'.split('');
+    let rainColumns;
+    let rainDrops = [];
+
+    function resizeRainCanvas() {
+      rainCanvas.width = window.innerWidth;
+      rainCanvas.height = window.innerHeight;
+      rainColumns = Math.floor(window.innerWidth / rainFontSize);
+      rainDrops = Array(rainColumns).fill(1);
+    }
+
+    function drawRainBackground() {
+      rainCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      rainCtx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
+      rainCtx.fillStyle = '#f584b7';
+      rainCtx.font = `bold ${rainFontSize}px "Noto Sans", Tahoma, Arial, sans-serif`;
+      for (let i = 0; i < rainDrops.length; i++) {
+        const text = rainLetters[Math.floor(Math.random() * rainLetters.length)];
+        rainCtx.fillText(text, i * rainFontSize, rainDrops[i] * rainFontSize);
+        if (rainDrops[i] * rainFontSize > rainCanvas.height || Math.random() > 0.95) {
+          rainDrops[i] = 0;
+        }
+        rainDrops[i]++;
+      }
+    }
+
+    resizeRainCanvas();
+    window.addEventListener('resize', resizeRainCanvas);
+    setInterval(drawRainBackground, 50);
+
+    const dotCanvas = document.getElementById("dotCanvas");
+    const ctx = dotCanvas.getContext("2d");
+
+    let width = dotCanvas.width = window.innerWidth;
+    let height = dotCanvas.height = window.innerHeight;
+
+    const messages = [
+["3"],
+["2"],
+["1"],
+["+1t"],
+["Happy", "Birthday"],
+["Anh Thư", "❤"],
+["30-07-2008"],
+["Chúc em"],
+["Một đời an yên"],
+["Tuổi mới", "vui vẻ nhé"],
+["^-^"]
+];
+
+    const fontSize = 130;
+    const gap = 6;
+    const dotSize = 2.5;
+    let dots = [];
+    let currentIndex = 0;
+
+    function resizeDotCanvas() {
+      width = dotCanvas.width = window.innerWidth;
+      height = dotCanvas.height = window.innerHeight;
+      showNextMessage();
+    }
+
+    window.addEventListener("resize", resizeDotCanvas);
+
+    function generateDotsFromText(lines) {
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "rgba(255, 255, 255, 1)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `bold ${fontSize}px sans-serif`;
+
+  const lineHeight = fontSize * 1.2;
+  const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2;
+
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], width / 2, startY + i * lineHeight);
+  }
+
+  const imageData = ctx.getImageData(0, 0, width, height).data;
+  const newDots = [];
+
+  for (let y = 0; y < height; y += gap) {
+    for (let x = 0; x < width; x += gap) {
+      const index = (x + y * width) * 4;
+      if (imageData[index + 3] > 128) {
+        newDots.push({ tx: x, ty: y });
+      }
+    }
+  }
+
+  return newDots;
+}
+
+
+    function showNextMessage() {
+  const textLines = messages[currentIndex]; // Bây giờ là mảng gồm 1 hoặc 2 dòng
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "rgba(255, 255, 255, 1)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `bold ${fontSize}px sans-serif`;
+
+  const newDots = [];
+
+  // Tính khoảng cách giữa các dòng (giả sử chỉ có tối đa 2 dòng)
+  const lineHeight = fontSize + 20;
+  const startY = height / 2 - ((textLines.length - 1) * lineHeight) / 2;
+
+  for (let j = 0; j < textLines.length; j++) {
+    const text = textLines[j];
+    const y = startY + j * lineHeight;
+    ctx.fillText(text, width / 2, y);
+
+    const imageData = ctx.getImageData(0, 0, width, height).data;
+
+    for (let y2 = 0; y2 < height; y2 += gap) {
+      for (let x = 0; x < width; x += gap) {
+        const index = (x + y2 * width) * 4;
+        if (imageData[index + 3] > 128) {
+          newDots.push({ tx: x, ty: y2 });
+        }
+      }
+    }
+
+    ctx.clearRect(0, 0, width, height); // Xóa dòng đã scan xong để tránh bị chồng pixel
+  }
+
+  // Gán dot mới
+  for (let i = 0; i < newDots.length; i++) {
+    if (dots[i]) {
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = Math.random() * 5 + 2;
+      dots[i].tx = newDots[i].tx;
+      dots[i].ty = newDots[i].ty;
+      dots[i].vx = Math.cos(angle) * speed;
+      dots[i].vy = Math.sin(angle) * speed;
+    } else {
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = Math.random() * 5 + 2;
+      dots.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        tx: newDots[i].tx,
+        ty: newDots[i].ty,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed
+      });
+    }
+  }
+
+  dots = dots.slice(0, newDots.length);
+  currentIndex = (currentIndex + 1) % messages.length;
+}
+
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      for (const dot of dots) {
+        const dx = dot.tx - dot.x;
+        const dy = dot.ty - dot.y;
+        dot.vx += dx * 0.01;
+        dot.vy += dy * 0.01;
+        dot.vx *= 0.85;
+        dot.vy *= 0.85;
+        dot.x += dot.vx;
+        dot.y += dot.vy;
+
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, dotSize, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#ffffff";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      requestAnimationFrame(animate);
+    }
+
+    showNextMessage();
+    animate();
+    setInterval(showNextMessage, 2000);
+  }
+}
+
+function resetGame() {
+  message.style.display = "none";
+  score = 0;
+  progressBar.style.width = "0%";
+  speed = 30;
+  clearInterval(spawnInterval);
+  clearInterval(speedInterval);
+
+  document.querySelectorAll(".obstacle").forEach(o => o.remove());
+
+  currentLane = 1;
+  player.style.top = lanes[currentLane] + "px";
+
+  gameEnded = false;
+
+  spawnInterval = setInterval(spawnObstacle, 1000);
+  speedInterval = setInterval(() => {
+    if (speed > 16) speed -= 2;
+  }, 10000);
+}
+
+let spawnInterval;
+
+function hideIntro() {
+  const chat = document.getElementById("introChat");
+  if (chat) chat.style.display = "none";
+}
+
+function startGame() {
+  hideIntro();
+    const bgm = document.getElementById("bgm");
+  if (bgm) {
+    bgm.play().catch((e) => {
+      console.warn("Không thể phát nhạc tự động:", e);
+    });
+  }
+
+  spawnInterval = setInterval(spawnObstacle, 1000);
+  speedInterval = setInterval(() => {
+    if (speed > 16) speed -= 2;
+  }, 10000);
+}
+
+const laneCanvas = document.getElementById("laneBackground");
+const laneCtx = laneCanvas.getContext("2d");
+
+function resizeLaneCanvas() {
+  laneCanvas.width = window.innerWidth;
+  laneCanvas.height = window.innerHeight;
+  drawLaneBackground();
+  updateLanes();
+  if (player && typeof currentLane !== 'undefined') {
+    player.style.top = lanes[currentLane] + "px";
+  }
+}
+
+function drawLaneBackground() {
+  const w = laneCanvas.width;
+  const h = laneCanvas.height;
+  const laneHeights = [h * 0.333, h * 0.333, h * 0.333];
+  const colors = ["#ffb3ec", "#e6a6ff", "#ffb3ec"];
+
+  let y = 0;
+  for (let i = 0; i < 3; i++) {
+    laneCtx.fillStyle = colors[i % colors.length];
+    laneCtx.fillRect(0, y, w, laneHeights[i]);
+    y += laneHeights[i];
+  }
+}
+
+window.addEventListener("resize", resizeLaneCanvas);
+resizeLaneCanvas();
+</script>
+</body>
+</html>
